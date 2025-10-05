@@ -1,0 +1,26 @@
+{
+  "name": "backend-project",
+  "version": "1.0.0",
+  "description": "my developing skills in backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akash102938/Backend-Project.git"
+  },
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "author": "Akash Pandey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Akash102938/Backend-Project/issues"
+  },
+  "homepage": "https://github.com/Akash102938/Backend-Project#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
