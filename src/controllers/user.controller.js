@@ -52,7 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImage: coverImage?.url || "",
     email,
     password,
-    username: username.toLowercase()
+    username: username.toLowerCase()
   })
 
   const createUser = User.findById(user._id).select("-password -refreshToken ")
