@@ -16,7 +16,20 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for user creation
   // return res
 
-  const { fullName, email, username, password } = req.body
+  // Defensive: req.body can be undefined for some multipart/form-data requests
+  const { fullName, email, username, password } = req.body || {}
+
+  // Stronger validation: treat missing, empty or whitespace-only values as invalid
+  const missingField = [
+    { name: 'fullName', value: fullName },
+    { name: 'email', value: email },
+    { name: 'username', value: username },
+    { name: 'password', value: password }
+  ].find(field => !field.value || (typeof field.value === 'string' && field.value.trim() === ''))
+
+  if (missingField) {
+    throw new ApiError(400, `Field '${missingField.name}' is required`)
+  }
 
   const existendUser = await User.findOne({
     $or: [{ username }, { email }]
@@ -25,9 +38,16 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with email or username already exits")
   }
 
+  console.log(req.files);
+  
+
 
   const avatarLocalPath = req.files?.avatar[0]?.path
-  const coverImageLocalPath = req.files?.coverImage[0]?.path
+  //const coverImageLocalPath = req.files?.coverImage[0]?.path
+  let coverImageLocalPath
+  if(req.files && Array.isArray(req.files.coverImage ) && req.files.coverImage.length>0){
+    coverImageLocalPath = req.files.coverImage[0].path
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required")
@@ -43,20 +63,19 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     fullName,
     avatar: avatar.url,
-    coverImage: coverImage?.url || "",
+    coverImage: coverImage?.secure_url || coverImage?.url || "",
     email,
     password,
-    username: username.toLowercase()
+    username: username.toLowerCase()
   })
+  const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
-  const createUser = User.findById(user._id).select("-password -refreshToken ")
-
-  if (!createUser) {
-    throw new ApiError(500, "Somthhing went wrong while regisitering user")
+  if (!createdUser) {
+    throw new ApiError(500, "Something went wrong while registering user")
   }
 
   return res.status(201).json(
-    new ApiResponse(200, createUser, "User registered Succesfully")
+    new ApiResponse(201, createdUser, "User registered successfully")
   )
 })
 
