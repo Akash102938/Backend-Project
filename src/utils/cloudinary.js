@@ -1,45 +1,37 @@
-import { v2 as cloudinary } from 'cloudinary'
-import fs from 'fs'
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-
 const uploadCloudinary = async (localFilePath) => {
-    try {
-        if (!localFilePath) return null
+  try {
+    if (!localFilePath) return null;
 
-        // upload the file to Cloudinary and wait for completion
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: 'auto'
-        })
+    // Upload file to Cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
 
-        // remove local temp file if it exists
-        try {
-            if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath)
-        } catch (e) {
-            // non-fatal: log and continue
-            console.warn('Failed to remove temp file:', localFilePath, e)
-        }
-
-        // file has been uploaded successfully
-       // console.log('file is uploaded on cloudinary', response.secure_url || response.url)
-       fs.unlinkSync(localFilePath)
-        return response
-
-    } catch (error) {
-        // remove the locally saved temporary file if present
-        try {
-            if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath)
-        } catch (e) {
-            // ignore
-        }
-        console.error('Cloudinary upload failed:', error)
-        return null
+    // Safely remove local temp file
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
     }
-}
 
-export { uploadCloudinary }
+    return response;
+  } catch (error) {
+    console.error("Cloudinary upload failed:", error);
+
+    // Safely remove temp file if exists
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+
+    return null;
+  }
+};
+
+export { uploadCloudinary };
